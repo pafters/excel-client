@@ -1,8 +1,8 @@
 import { createRef, useEffect, useState } from 'react';
 import './auth.css';
-import axios from 'axios';
+import { authorize } from '../../modules/router';
 
-export default function Authorization({ router }) {
+export default function Authorization() {
     const loginRef = createRef(null);
     const passwordRef = createRef(null);
     const [errMessage, updErrMessage] = useState('');
@@ -17,13 +17,13 @@ export default function Authorization({ router }) {
         const login = loginRef.current.value;
         const password = passwordRef.current.value;
         try {
-            const answer = await router.sendPost('users/auth', { login, password });
+            const answer = await authorize({ login, password });
             if (answer?.data?.token) {
                 localStorage.setItem('excel_handler_token', answer.data.token)
                 window.location.replace('/')
             }
 
-        }  catch (e) {
+        } catch (e) {
             updErrMessage(e.response.data.err);
         }
     }

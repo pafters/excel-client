@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './fileUpload.css';
+import { uploadFile } from '../../modules/router';
 
 function rus_to_latin(str) {
 
@@ -24,7 +25,7 @@ function rus_to_latin(str) {
     return n_str.join('');
 }
 
-function FileUpload({ router, token, handlerStatus, updateHandlerStatus }) {
+function FileUpload({ token }) {
     const [selectedFile, setSelectedFile] = useState(null);
 
     const handleFileChange = (event) => {
@@ -38,48 +39,6 @@ function FileUpload({ router, token, handlerStatus, updateHandlerStatus }) {
         }
     };
 
-    async function getHadlerStatus() {
-        try {
-            const answer = await router.sendGet(
-                'files/get-hadler-status',
-                '',
-                {
-                    'AuthorizationToken': `${token}`
-                }
-            );
-            if (answer.data?.status) {
-                return answer.data.status;
-            }
-        } catch (e) {
-            //updErrMessage(e.response.data.err)
-        }
-    }
-
-    useEffect(() => {
-        const fetchObj = async () => {
-            const status = await getHadlerStatus();
-
-            if (status)
-                updateHandlerStatus(status);
-            if (status?.process) {
-                checkStatus();
-            }
-        }
-        fetchObj();
-    }, [])
-
-    const checkStatus = () => {
-        const interval = setInterval(async () => {
-            const status = await getHadlerStatus();
-            if (status?.process)
-                updateHandlerStatus(status);
-            else {
-                updateHandlerStatus(status);
-                clearInterval(interval);
-            }
-        }, 1500)
-    }
-
     const handleFileUpload = async (isDetailed) => {
         if (token) {
             const formData = new FormData();
@@ -88,14 +47,7 @@ function FileUpload({ router, token, handlerStatus, updateHandlerStatus }) {
             formData.append('isDetailed', isDetailed);
             setSelectedFile(null);
             try {
-                checkStatus();
-                const answer = await router.sendPost('files/upload-file',
-                    formData,
-                    {
-                        'Content-Type': 'multipart/form-data',
-                        'AuthorizationToken': `${token}`
-                    }
-                );
+                const answer = await uploadFile(formData, token);
                 if (answer) {
                     window.location.reload();
                 }
@@ -108,18 +60,13 @@ function FileUpload({ router, token, handlerStatus, updateHandlerStatus }) {
 
     return (
         <div className="upload-container">
-            {
-                !handlerStatus?.process ?
-                    <div className="btn-file">
-                        Выбрать файл
-                        <input type="file"
-                            onChange={handleFileChange} />
-                    </div>
-                    :
-                    <div>
-                        <span>{handlerStatus?.tableName}: {handlerStatus.process}</span>
-                    </div>
-            }
+
+            <div className="btn-file">
+                Выбрать файл
+                <input type="file"
+                    onChange={handleFileChange} />
+            </div>
+
             {selectedFile &&
                 <div>
                     <button className="btn-standard"

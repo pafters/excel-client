@@ -2,24 +2,17 @@ import { useEffect, useState } from "react";
 import FileUpload from "../../components/uploads/FileUpload";
 import ExcelEditor from "../../components/excel/ExcelEditor";
 import QuitButton from "../../components/quit/QuitButton";
+import { checkToken } from "../../modules/router";
 
-export default function MainPage({ router }) {
+export default function MainPage() {
     const [token, updToken] = useState(null)
-    const [handlerStatus, updateHandlerStatus] = useState({});
 
     useEffect(() => {
         const localToken = localStorage.getItem('excel_handler_token');
         if (localToken) {
             const fetchObj = async () => {
                 try {
-                    const tokenInfo = await router.sendGet(
-                        'users/token-life',
-                        '',
-                        {
-                            'AuthorizationToken': `${localToken}`
-                        }
-                    )
-                    console.log(tokenInfo);
+                    const tokenInfo = await checkToken(localToken)
                     if (tokenInfo) {
                         if (tokenInfo.status === 200)
                             updToken(localToken);
@@ -41,8 +34,8 @@ export default function MainPage({ router }) {
             {token &&
                 <div>
                     <QuitButton />
-                    <FileUpload handlerStatus={handlerStatus} updateHandlerStatus={updateHandlerStatus} router={router} token={token} />
-                    <ExcelEditor handlerStatus={handlerStatus}  updateHandlerStatus={updateHandlerStatus} router={router} token={token} />
+                    <FileUpload token={token} />
+                    <ExcelEditor token={token} />
                 </div>}
         </div>
     );

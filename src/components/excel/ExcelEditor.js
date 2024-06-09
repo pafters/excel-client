@@ -1,62 +1,26 @@
 import { useEffect, useState } from 'react';
-import * as XLSX from 'xlsx';
 
 import './excelEditor.css';
+import { changeMain, deleteTable, getFile, getTableJson, getTableNames, mergeTables } from '../../modules/router';
 
 
-export default function ExcelEditor({ router, token, handlerStatus, updateHandlerStatus }) {
+export default function ExcelEditor({ token }) {
     const [excelData, setExcelData] = useState(null);
     const [tableName, updateTableName] = useState('');
     const [tableNames, updateTableNames] = useState([]);
     const [errMessage, updErrMessage] = useState(null);
     const [isDelete, updDeleteNotice] = useState(false);
-    const [main, updMain] = useState(false);
     const names = ['Секция', 'Подсекция', 'Товар', 'Характеристика'];
 
     useEffect(() => {
         getTablenames();
     }, [])
 
-    async function getHadlerStatus() {
-        try {
-            const answer = await router.sendGet(
-                'files/get-hadler-status',
-                '',
-                {
-                    'AuthorizationToken': `${token}`
-                }
-            );
-            if (answer.data?.status) {
-                return answer.data.status;
-            }
-        } catch (e) {
-            //updErrMessage(e.response.data.err)
-        }
-    }
-
-    const checkStatus = () => {
-        const interval = setInterval(async () => {
-            const status = await getHadlerStatus();
-            if (status?.process)
-                updateHandlerStatus(status);
-            else {
-                updateHandlerStatus(status);
-                clearInterval(interval);
-            }
-        }, 1500)
-    }
-
     async function getTablenames() {
         try {
             updateTableNames([]);
             try {
-                const answer = await router.sendGet(
-                    'files/get-table-names',
-                    '',
-                    {
-                        'AuthorizationToken': `${token}`
-                    }
-                );
+                const answer = await getTableNames(token);
                 if (answer.data?.files) {
                     updateTableNames(answer.data.files);
                 }
@@ -69,18 +33,12 @@ export default function ExcelEditor({ router, token, handlerStatus, updateHandle
         }
     }
 
-    async function getTableJson(tablename) {
+    async function fetchTableJson(tableName) {
         try {
             if (token) {
                 try {
-                    const main = tablename === tableNames[0];
-                    const answer = await router.sendGet(
-                        'files/get-table',
-                        `/?tableName=${tablename}&main=${main}`,
-                        {
-                            'AuthorizationToken': `${token}`
-                        }
-                    );
+                    const main = tableName === tableNames[0];
+                    const answer = await getTableJson(tableName, main, token)
                     if (answer?.data?.tableData) {
                         return answer.data.tableData;
                     }
@@ -98,7 +56,7 @@ export default function ExcelEditor({ router, token, handlerStatus, updateHandle
     const handleGetTableData = async (name) => {
         setExcelData(null);
         updateTableName('');
-        const data = await getTableJson(name) //XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+        const data = await fetchTableJson(name) //XLSX.utils.sheet_to_json(worksheet, { header: 1 });
         if (data) {
             data.forEach(element => {
                 if (element.length < 4) {
@@ -121,16 +79,7 @@ export default function ExcelEditor({ router, token, handlerStatus, updateHandle
     async function handleDelTable() {
         const main = tableName === tableNames[0];
         try {
-            const answer = await router.sendPost(
-                'files/delete-table',
-                {
-                    tableName: tableName,
-                    main: main
-                },
-                {
-                    'AuthorizationToken': `${token}`
-                }
-            );
+            const answer = await deleteTable(tableName, main, token);
             if (answer.status === 200) {
                 getTablenames();
                 updDeleteNotice(false);
@@ -147,13 +96,7 @@ export default function ExcelEditor({ router, token, handlerStatus, updateHandle
 
     async function downloadTable(name) {
         try {
-            const answer = await router.sendGet(
-                'files/data',
-                `/${name}`,
-                {
-                    'AuthorizationToken': `${token}`
-                }
-            )
+            const answer = await getFile(name, token);
             if (answer?.data) {
                 const file = answer.data.file.data;
                 const data = Uint8Array.from(file)
@@ -174,15 +117,7 @@ export default function ExcelEditor({ router, token, handlerStatus, updateHandle
 
     async function addToMainTable(name) {
         try {
-            checkStatus();
-            const answer = await router.sendPost('files/add-to-main-table',
-                {
-                    tableName: name
-                },
-                {
-                    'AuthorizationToken': `${token}`
-                }
-            );
+            const answer = await mergeTables(name, token)
             if (answer) {
                 window.location.reload();
             }
@@ -193,14 +128,7 @@ export default function ExcelEditor({ router, token, handlerStatus, updateHandle
 
     async function switchMainTable(name) {
         try {
-            const answer = await router.sendPost('files/switch-main-table',
-                {
-                    tableName: name
-                },
-                {
-                    'AuthorizationToken': `${token}`
-                }
-            );
+            const answer = await changeMain(name, token);
             if (answer) {
                 window.location.reload();
             }
@@ -239,7 +167,7 @@ export default function ExcelEditor({ router, token, handlerStatus, updateHandle
                                             downloadTable(name);
                                         }}>▼</button>
                                     {
-                                        name !== tableNames[0] && !handlerStatus?.process &&
+                                        name !== tableNames[0] &&
                                         <button className='add-to-main-table-bttn' key={'add-to-main-table-' + i}
                                             title="Добавить содержимое в главную"
                                             onClick={() => {
