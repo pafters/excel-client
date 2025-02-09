@@ -1,26 +1,26 @@
 import { useEffect, useState } from 'react';
 
 import './excelEditor.css';
-import { changeMain, deleteTable, getFile, getTableJson, getTableNames, mergeTables } from '../../modules/router';
+import { changeMain, deleteTable, getFile, getTableJson, getTableNames, mergeTables } from '../../router/index';
+import { COMPONENTS } from '../../hepler/constants.helper';
 
 
-export default function ExcelEditor({ token }) {
+export default function ExcelEditor() {
     const [excelData, setExcelData] = useState(null);
     const [tableName, updateTableName] = useState('');
     const [tableNames, updateTableNames] = useState([]);
     const [errMessage, updErrMessage] = useState(null);
     const [isDelete, updDeleteNotice] = useState(false);
-    const names = ['Секция', 'Подсекция', 'Товар', 'Характеристика'];
 
     useEffect(() => {
-        getTablenames();
+        getTables();
     }, [])
 
-    async function getTablenames() {
+    async function getTables() {
         try {
             updateTableNames([]);
             try {
-                const answer = await getTableNames(token);
+                const answer = await getTableNames();
                 if (answer.data?.files) {
                     updateTableNames(answer.data.files);
                 }
@@ -35,21 +35,15 @@ export default function ExcelEditor({ token }) {
 
     async function fetchTableJson(tableName) {
         try {
-            if (token) {
-                try {
-                    const main = tableName === tableNames[0];
-                    const answer = await getTableJson(tableName, main, token)
-                    if (answer?.data?.tableData) {
-                        return answer.data.tableData;
-                    }
-
-                } catch (e) {
-                    console.log(e);
-                    updErrMessage(e.response.data.err);
-                }
+            const main = tableName === tableNames[0];
+            const answer = await getTableJson(tableName, main)
+            if (answer?.data?.tableData) {
+                return answer.data.tableData;
             }
-        } catch (error) {
-            console.error('Произошла ошибка при получении списка файлов:', error);
+
+        } catch (e) {
+            console.log(e);
+            updErrMessage(e.response.data.err);
         }
     }
 
@@ -67,7 +61,7 @@ export default function ExcelEditor({ token }) {
                 }
             });
             updateTableName(name);
-            setExcelData([names, ...data]);
+            setExcelData([COMPONENTS.TABLE_COLUMN_NAMES, ...data]);
         }
     };
 
@@ -79,15 +73,15 @@ export default function ExcelEditor({ token }) {
     async function handleDelTable() {
         const main = tableName === tableNames[0];
         try {
-            const answer = await deleteTable(tableName, main, token);
+            const answer = await deleteTable(tableName, main);
             if (answer.status === 200) {
-                getTablenames();
+                getTables();
                 updDeleteNotice(false);
                 updateTableName('');
             }
         }
         catch (e) {
-            getTablenames();
+            getTables();
             updDeleteNotice(false);
             updateTableName('');
             console.log(e.response.data.err);
@@ -96,7 +90,7 @@ export default function ExcelEditor({ token }) {
 
     async function downloadTable(name) {
         try {
-            const answer = await getFile(name, token);
+            const answer = await getFile(name);
             if (answer?.data) {
                 const file = answer.data.file.data;
                 const data = Uint8Array.from(file)
@@ -117,7 +111,7 @@ export default function ExcelEditor({ token }) {
 
     async function addToMainTable(name) {
         try {
-            const answer = await mergeTables(name, token)
+            const answer = await mergeTables(name)
             if (answer) {
                 window.location.reload();
             }
@@ -128,7 +122,7 @@ export default function ExcelEditor({ token }) {
 
     async function switchMainTable(name) {
         try {
-            const answer = await changeMain(name, token);
+            const answer = await changeMain(name);
             if (answer) {
                 window.location.reload();
             }
