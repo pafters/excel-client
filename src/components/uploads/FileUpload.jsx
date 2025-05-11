@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import './Tables.css';
 import { uploadFile } from '../../router/index';
 import { rusToLatin } from '../../hepler/language.helper';
@@ -8,7 +8,8 @@ function FileUpload() {
 
     const handleFileChange = (event) => {
         try {
-            const renamedFile = new File([event.target?.files[0]], rusToLatin(event.target?.files[0].name), { type: event.target?.files[0].type });
+            const renamedFile = new File([event.target?.files[0]],
+                rusToLatin(event.target?.files[0].name), { type: event.target?.files[0].type });
             const reader = new FileReader();
             reader.readAsDataURL(renamedFile)
             setSelectedFile(renamedFile);

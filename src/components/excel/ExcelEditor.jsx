@@ -8,27 +8,21 @@ import { COMPONENTS } from '../../hepler/constants.helper';
 export default function ExcelEditor() {
     const [excelData, setExcelData] = useState(null);
     const [tableName, updateTableName] = useState('');
-    const [tableNames, updateTableNames] = useState([]);
-    const [errMessage, updErrMessage] = useState(null);
     const [isDelete, updDeleteNotice] = useState(false);
+    const [tableNames, updateTableNames] = useState([]);
 
     useEffect(() => {
         getTables();
     }, [])
 
     async function getTables() {
+        updateTableNames([]);
         try {
-            updateTableNames([]);
-            try {
-                const answer = await getTableNames();
-                if (answer.data?.files) {
-                    updateTableNames(answer.data.files);
-                }
-            } catch (e) {
-                updErrMessage(e.response.data.err)
+            const answer = await getTableNames();
+            if (answer.data?.files) {
+                updateTableNames(answer.data.files);
             }
-
-        } catch (error) {
+        } catch (e) {
             console.error('Произошла ошибка при получении списка файлов:', error);
         }
     }
@@ -43,14 +37,13 @@ export default function ExcelEditor() {
 
         } catch (e) {
             console.log(e);
-            updErrMessage(e.response.data.err);
         }
     }
 
     const handleGetTableData = async (name) => {
         setExcelData(null);
         updateTableName('');
-        const data = await fetchTableJson(name) //XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+        const data = await fetchTableJson(name);
         if (data) {
             data.forEach(element => {
                 if (element.length < 4) {
@@ -105,7 +98,7 @@ export default function ExcelEditor() {
             }
         }
         catch (e) {
-            //console.log(e.response.data.err);
+            console.log(e.response.data.err);
         }
     }
 
@@ -113,7 +106,7 @@ export default function ExcelEditor() {
         try {
             const answer = await mergeTables(name)
             if (answer) {
-                window.location.reload();
+                await getTables();
             }
         } catch (e) {
             console.log(e);
@@ -124,7 +117,7 @@ export default function ExcelEditor() {
         try {
             const answer = await changeMain(name);
             if (answer) {
-                window.location.reload();
+                await getTables();
             }
         } catch (e) {
             console.log(e);

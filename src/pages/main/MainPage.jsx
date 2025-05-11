@@ -1,12 +1,12 @@
-import Tables from "../../components/list/Tables";
-import ExcelViewer from "../../components/excel/ExcelViewer";
+import FileUpload from "../../components/uploads/FileUpload";
+import ExcelEditor from "../../components/excel/ExcelEditor";
 
 export default function MainPage() {
 
     return (
         <div>
-            <Tables />
-            <ExcelViewer />
+            <FileUpload />
+            <ExcelEditor />
         </div>
     );
 }
