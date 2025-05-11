@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import './fileUpload.css';
+import './Tables.css';
 import { uploadFile } from '../../router/index';
 import { rusToLatin } from '../../hepler/language.helper';
 

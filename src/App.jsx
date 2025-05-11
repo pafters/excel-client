@@ -5,12 +5,7 @@ import MainPage from './pages/main/MainPage';
 function App() {
   return (
     <div className="App">
-      <Router>
-        <Routes>
-          <Route exact path='/' element={<MainPage />} />
-        </Routes>
-      </Router>
-
+      <MainPage />
     </div>
   );
 }
