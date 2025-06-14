@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import './ExcelViewer.css';
+import './ExcelEditor.css';
 import { changeMain, deleteTable, getFile, getTableJson, getTableNames, mergeTables } from '../../router/index';
 import { COMPONENTS } from '../../hepler/constants.helper';
 
@@ -23,7 +23,7 @@ export default function ExcelEditor() {
                 updateTableNames(answer.data.files);
             }
         } catch (e) {
-            console.error('Произошла ошибка при получении списка файлов:', error);
+            console.error('Произошла ошибка при получении списка файлов:', e);
         }
     }
 
@@ -126,20 +126,7 @@ export default function ExcelEditor() {
 
     return (
         <div>
-            {isDelete &&
-                <div className="delete-table-notice">
-                    <div className="delete-table-container">
-                        <span>Вы уверены, что хотите удалить таблицу: "{tableName}"?</span>
-                        <div className="delete-table-buttons">
-                            <button className="delete-table-button" onClick={() => handleDelTable(tableName)}>Да</button>
-                            <button className="delete-table-button" onClick={() => {
-                                updDeleteNotice(false);
-                                updateTableName('');
-                            }
-                            }>Нет</button>
-                        </div>
-                    </div>
-                </div>}
+           
             {
                 tableNames[1] && (
                     <div className='table-names-container'>
